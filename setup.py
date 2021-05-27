@@ -8,7 +8,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setuptools.setup(
     name='ORM-SQLite',
-    version='0.0.1',
+    version='0.0.2',
     description='A lightweight ORM for SQLite',
     author='Yi Zhang',
     author_email='yizhang.dev@gmail.com',
