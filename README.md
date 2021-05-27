@@ -9,12 +9,12 @@ ORM-SQLite is
 
 ## Quickstart
 
-1. Define a `Pomodora` model
+1. Define a `Pomodoro` model
 
    ```python
    import orm_sqlite  
 
-   class Pomodora(orm_sqlite.Model):  
+   class Pomodoro(orm_sqlite.Model):  
 
        id = orm_sqlite.IntegerField(primary_key=True) # auto-increment
        task = orm_sqlite.StringField()
@@ -27,36 +27,36 @@ ORM-SQLite is
    db = orm_sqlite.Database('example.db')
    ```
 
-3. Set it as backend of `Pomodora` model objects, CRUD operations thus can be performed later
+3. Set it as backend of `Pomodoro` model objects, CRUD operations thus can be performed later
 
    ```python
-   Pomodora.objects.backend = db
+   Pomodoro.objects.backend = db
    ```
 
-4. **Create** a Pomodora timer record (primary key is auto-increment) and **insert** it to backend (**auto-commited**)
+4. **Create** a Pomodoro timer record (primary key is auto-increment) and **insert** it to backend (**auto-commited**)
 
    ```python
-   pomodora = Pomodora({'task': 'do something', 'interval': 25})
-   pomodora.save()
+   pomodoro = Pomodoro({'task': 'do something', 'interval': 25})
+   pomodoro.save()
    ```
-   
+
    which is equivalent to
-   
+
    ```python
-   pomodora = Pomodora({'task': 'do something', 'interval': 25})
-   Pomodora.objects.add(pomodora)   
+   pomodoro = Pomodoro({'task': 'do something', 'interval': 25})
+   Pomodoro.objects.add(pomodoro)   
    ```
 
 5. **Retrieve** all the records in the backend
 
    ```Python
-   Pomodora.objects.all()
+   Pomodoro.objects.all()
    ```
 
 6. **Retrieve** single record by its primary key and **update** it (**auto-commited**)
 
    ```python
-   obj = Pomodora.objects.get(pk=1)
+   obj = Pomodoro.objects.get(pk=1)
    obj['task'] = 'do something else'
    obj.update()
    ```
@@ -64,28 +64,28 @@ ORM-SQLite is
    which is equivalent to
 
    ```python
-   obj = Pomodora.objects.get(pk=1)
+   obj = Pomodoro.objects.get(pk=1)
    obj['task'] = 'do something else'
-   Pomodora.objects.update(obj)
+   Pomodoro.objects.update(obj)
    ```
 
 7. **Retrieve** single record by its primary key and **delete** it (**auto-commited**)
 
    ```python
-   Pomodora.objects.get(pk=1).delete()
+   Pomodoro.objects.get(pk=1).delete()
    ```
 
    which is equivalent to
 
    ```python
-   obj = Pomodora.objects.get(pk=1)
-   Pomodora.objects.remove(obj)
+   obj = Pomodoro.objects.get(pk=1)
+   Pomodoro.objects.remove(obj)
    ```
 
 8. Disconnect the backend
 
    ```python
-   Pomodora.objects.backend.close()
+   Pomodoro.objects.backend.close()
    ```
 
 
@@ -272,7 +272,7 @@ class orm_sqlite.Model(*args, **kwargs)
 import orm_sqlite
 
 class MyModel(orm_sqlite.Model):
-  
+
     id = orm_sqlite.IntegerField(primary_key=True) # auto-increment
     # TODO:   
 ```
@@ -327,7 +327,7 @@ class orm_sqlite.Manager()
 
 
 
-### Helper Function 
+### Helper Function
 
 * `root_logger(log_dir='.')`
 
@@ -342,4 +342,3 @@ class orm_sqlite.Manager()
 ## Related Projects
 
 * Inspired by [Django](https://www.djangoproject.com/) ORM
-
