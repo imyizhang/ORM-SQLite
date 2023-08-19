@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from .database import Database
+from .erro import FieldNotExist
 from .logger import child_logger
 
 logger = child_logger('orm_sqlite.manager')
@@ -12,6 +12,7 @@ class Manager(object):
     def __init__(self):
         self._database = None
         self._model = None
+        self._where = []
 
     @property
     def backend(self):
@@ -70,20 +71,31 @@ class Manager(object):
         logger.debug('\n    SQL: {}'.format(sql))
         results = self._database.select(sql)
         return [self._model(dict(r)) for r in results]
-
-    def find(self, filter=None, order_by=None, **extra):
-        sql = '''
-        SELECT * FROM {}'''.format(
-            self._model.__table__
-        )
-        if filter is not None:
-            sql += '\n        WHERE {}'.format(filter)
-        if order_by is not None:
-            sql += '\n        ORDER BY {}'.format(order_by)
-        # TODO:
+    
+    def where(self, **args):
+        for key, value in args.items():
+            if key not in self._model.__fields__ and key != "pk":
+                raise FieldNotExist(f"Field {key} does not exist")
+            self._where.append({
+                "key": key if key != "pk" else self._model.__primary_key__,
+                "operator": "=",
+                "value": value
+            })
+        return self
+    
+    def find(self):
+        sql = '''SELECT * FROM {}'''.format(self._model.__table__)
+        params = []
+        if self._where:
+            sql += ' WHERE'
+            for x in self._where:
+                if self._where.index(x) == 0:
+                    sql += f' {x["key"]} {x["operator"]} ?'
+                else:
+                    sql += f' and {x["key"]} {x["operator"]} ?'
+                params.append(x["value"])
         sql += ';'
-        logger.debug('\n    SQL: {}'.format(sql))
-        results = self._database.select(sql)
+        results = self._database.select(sql, *params)
         return [self._model(dict(r)) for r in results]
 
     def get(self, pk):
@@ -200,7 +212,7 @@ class ManagerDescriptor(object):
         return self.manager
 
 
-class classonlymethod(classmethod):
+class ClassonlyMethod(classmethod):
 
     def __get__(self, instance, cls=None):
         if instance is not None:

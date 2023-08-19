@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
-from .manager import Manager, classonlymethod
+from .manager import Manager, ClassonlyMethod
 from .logger import child_logger
 
 logger = child_logger('orm_sqlite.model')
@@ -19,18 +18,21 @@ class Field(object):
         return '<{}, {} {}>'.format(
             self.__class__.__name__, self.name, self.type
         )
+    
 
 # string data types
 class StringField(Field):
 
     def __init__(self, name=None, default=''):
         super().__init__(name, 'TEXT', default, False)
+        
 
 # numeric data types
 class IntegerField(Field):
 
     def __init__(self, name=None, default=0, primary_key=False):
         super().__init__(name, 'INTEGER', default, primary_key)
+        
 
 class FloatField(Field):
 
@@ -81,15 +83,15 @@ class Model(dict, metaclass=ModelMetaclass):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @classonlymethod
+    @ClassonlyMethod
     def exists(cls):
         return cls.objects.table_exists()
 
-    @classonlymethod
+    @ClassonlyMethod
     def create(cls):
         return cls.objects.create_table()
 
-    @classonlymethod
+    @ClassonlyMethod
     def drop(cls):
         return cls.objects.drop_table()
 

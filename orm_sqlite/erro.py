@@ -1,0 +1,2 @@
+class FieldNotExist(Exception):
+    pass

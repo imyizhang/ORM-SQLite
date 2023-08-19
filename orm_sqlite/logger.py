@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import logging
 import pathlib
@@ -26,6 +25,7 @@ def root_logger(log_dir='.'):
     logger.addHandler(fh)
     logger.addHandler(ch)
     return logger
+
 
 def child_logger(child):
     # create child logger
