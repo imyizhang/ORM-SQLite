@@ -83,35 +83,47 @@ class Manager(object):
             })
         return self
     
-    def find(self):
+    def find(self, pk):
         sql = '''SELECT * FROM {}'''.format(self._model.__table__)
         params = []
         if self._where:
-            sql += ' WHERE'
-            for x in self._where:
-                if self._where.index(x) == 0:
-                    sql += f' {x["key"]} {x["operator"]} ?'
-                else:
-                    sql += f' and {x["key"]} {x["operator"]} ?'
-                params.append(x["value"])
+            where, params = self.__build_where(pk)
+            sql += " " + where
         sql += ';'
         results = self._database.select(sql, *params)
         return [self._model(dict(r)) for r in results]
 
-    def get(self, pk):
-        sql = '''
-        SELECT * FROM {}
-        WHERE {} = ?;'''.format(
-            self._model.__table__,
-            self._model.__primary_key__
-        )
-        args = [pk]
-        logger.debug('\n    SQL: {}\n    ARGS:\n        {}'.format(sql, args))
-        result = self._database.select(sql, *args)
+    def get(self, pk: int = None):
+        sql = 'SELECT * FROM {}'.format(self._model.__table__)
+        params = []
+        if self._where:
+            where, params = self.__build_where(pk)
+            sql += " " + where
+        sql += " LIMIT 1;"
+        result = self._database.select(sql, *params, size=1)
         if len(result) == 1:
             return self._model(dict(result[0]))
         return None
-
+    
+    def __build_where(self, pk: int = None):
+        keys = []
+        params = []
+        where = "WHERE"
+        if pk:
+            where += f" {self._model.__primary_key__} = ?"
+            keys.append(self._model.__primary_key__)
+            params.append(pk)
+            
+        for x in self._where:
+            if x["key"] not in keys:
+                keys.append(x["key"])
+                if self._where.index(x) == 0 and pk is None:
+                    where += f' {x["key"]} {x["operator"]} ?'
+                else:
+                    where += f' and {x["key"]} {x["operator"]} ?'
+                params.append(x["value"])
+        return where, params
+        
     def exists(self, pk):
         obj = self.get(pk)
         return False if obj is None else True

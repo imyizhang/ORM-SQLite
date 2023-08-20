@@ -50,6 +50,8 @@ class Database(object):
         self.cursor.execute(sql, args)
         if size is None:
             result = self.cursor.fetchall()
+        elif size == 1:
+            result = self.cursor.fetchone()
         else:
             result = self.cursor.fetchmany(size=size)
         rows_selected = len(result)
