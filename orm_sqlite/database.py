@@ -54,8 +54,12 @@ class Database(object):
             result = self.cursor.fetchone()
         else:
             result = self.cursor.fetchmany(size=size)
-        rows_selected = len(result)
-        logger.info('rows selected: {}'.format(rows_selected))
+        
+        if result:
+            rows_selected = len(result)
+            logger.info('rows selected: {}'.format(rows_selected))
+        else:
+            rows_selected = 0
         return result
 
     def execute(self, sql, *args, autocommit=True):

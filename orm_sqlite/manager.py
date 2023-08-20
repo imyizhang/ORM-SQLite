@@ -83,10 +83,10 @@ class Manager(object):
             })
         return self
     
-    def find(self, pk):
+    def find(self, pk: int = None):
         sql = '''SELECT * FROM {}'''.format(self._model.__table__)
         params = []
-        if self._where:
+        if self._where or pk:
             where, params = self.__build_where(pk)
             sql += " " + where
         sql += ';'
@@ -96,14 +96,13 @@ class Manager(object):
     def get(self, pk: int = None):
         sql = 'SELECT * FROM {}'.format(self._model.__table__)
         params = []
-        if self._where:
+        if self._where or pk:
             where, params = self.__build_where(pk)
             sql += " " + where
         sql += " LIMIT 1;"
         result = self._database.select(sql, *params, size=1)
-        if len(result) == 1:
-            return self._model(dict(result[0]))
-        return None
+        if result:
+            return self._model(dict(result))
     
     def __build_where(self, pk: int = None):
         keys = []
