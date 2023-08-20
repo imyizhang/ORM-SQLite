@@ -33,6 +33,12 @@ class IntegerField(Field):
     def __init__(self, name=None, default=0, primary_key=False):
         super().__init__(name, 'INTEGER', default, primary_key)
         
+        
+class TinyIntegerField(Field):
+
+    def __init__(self, name=None, default=0):
+        super().__init__(name, 'tinyINTEGER', default, False)
+        
 
 class FloatField(Field):
 
