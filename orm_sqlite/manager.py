@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from .database import Database
+from .erro import FieldNotExist
 from .logger import child_logger
 
 logger = child_logger('orm_sqlite.manager')
@@ -12,6 +12,7 @@ class Manager(object):
     def __init__(self):
         self._database = None
         self._model = None
+        self._where = []
 
     @property
     def backend(self):
@@ -70,36 +71,58 @@ class Manager(object):
         logger.debug('\n    SQL: {}'.format(sql))
         results = self._database.select(sql)
         return [self._model(dict(r)) for r in results]
-
-    def find(self, filter=None, order_by=None, **extra):
-        sql = '''
-        SELECT * FROM {}'''.format(
-            self._model.__table__
-        )
-        if filter is not None:
-            sql += '\n        WHERE {}'.format(filter)
-        if order_by is not None:
-            sql += '\n        ORDER BY {}'.format(order_by)
-        # TODO:
+    
+    def where(self, **args):
+        for key, value in args.items():
+            if key not in self._model.__fields__ and key != "pk":
+                raise FieldNotExist(f"Field {key} does not exist")
+            self._where.append({
+                "key": key if key != "pk" else self._model.__primary_key__,
+                "operator": "=",
+                "value": value
+            })
+        return self
+    
+    def find(self, pk: int = None):
+        sql = '''SELECT * FROM {}'''.format(self._model.__table__)
+        params = []
+        if self._where or pk:
+            where, params = self.__build_where(pk)
+            sql += " " + where
         sql += ';'
-        logger.debug('\n    SQL: {}'.format(sql))
-        results = self._database.select(sql)
+        results = self._database.select(sql, *params)
         return [self._model(dict(r)) for r in results]
 
-    def get(self, pk):
-        sql = '''
-        SELECT * FROM {}
-        WHERE {} = ?;'''.format(
-            self._model.__table__,
-            self._model.__primary_key__
-        )
-        args = [pk]
-        logger.debug('\n    SQL: {}\n    ARGS:\n        {}'.format(sql, args))
-        result = self._database.select(sql, *args)
-        if len(result) == 1:
-            return self._model(dict(result[0]))
-        return None
-
+    def get(self, pk: int = None):
+        sql = 'SELECT * FROM {}'.format(self._model.__table__)
+        params = []
+        if self._where or pk:
+            where, params = self.__build_where(pk)
+            sql += " " + where
+        sql += " LIMIT 1;"
+        result = self._database.select(sql, *params, size=1)
+        if result:
+            return self._model(dict(result))
+    
+    def __build_where(self, pk: int = None):
+        keys = []
+        params = []
+        where = "WHERE"
+        if pk:
+            where += f" {self._model.__primary_key__} = ?"
+            keys.append(self._model.__primary_key__)
+            params.append(pk)
+            
+        for x in self._where:
+            if x["key"] not in keys:
+                keys.append(x["key"])
+                if self._where.index(x) == 0 and pk is None:
+                    where += f' {x["key"]} {x["operator"]} ?'
+                else:
+                    where += f' and {x["key"]} {x["operator"]} ?'
+                params.append(x["value"])
+        return where, params
+        
     def exists(self, pk):
         obj = self.get(pk)
         return False if obj is None else True
@@ -200,7 +223,7 @@ class ManagerDescriptor(object):
         return self.manager
 
 
-class classonlymethod(classmethod):
+class ClassonlyMethod(classmethod):
 
     def __get__(self, instance, cls=None):
         if instance is not None:

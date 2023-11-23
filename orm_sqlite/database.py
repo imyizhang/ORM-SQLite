@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import sqlite3
 
@@ -51,11 +50,16 @@ class Database(object):
         self.cursor.execute(sql, args)
         if size is None:
             result = self.cursor.fetchall()
+        elif size == 1:
+            result = self.cursor.fetchone()
         else:
             result = self.cursor.fetchmany(size=size)
-        #rows_selected = self.cursor.rowcount
-        rows_selected = len(result)
-        logger.info('rows selected: {}'.format(rows_selected))
+        
+        if result:
+            rows_selected = len(result)
+            logger.info('rows selected: {}'.format(rows_selected))
+        else:
+            rows_selected = 0
         return result
 
     def execute(self, sql, *args, autocommit=True):
